@@ -1,0 +1,72 @@
+7 - Lift Overloaded (Part 1)
+
+You are given a table of list of lifts , their maximum capacity and people along with their weight who wants to enter into it. 
+You need to make sure maximum people enter into the lift without lift getting overloaded.
+
+For each lift find the comma separated list of people who can be accomodated. The comma separated list should have people in the order of their weight in increasing order.
+
+Table: lifts (primary key : id)
+column name	datatype
+id 	        int
+capacity_kg     int
+
+Table: lift_passengers(primary key : passenger_name )
+column name	datatype
+passenger_name 	varchar(10)
+weight_kg 	int
+lift_id 	int
+ 
+Expected Output:
+id	passenger_list
+1	Adarsh,Dheeraj,Rahul
+2	Priti,Neha,Vimal,Himanshi
+
+Query added for temp table:
+with lift as
+(
+SELECT 1 AS lift, 50 as weight_capacity
+UNION ALL
+SELECT 2, 60 as weight_capacity
+UNION ALL
+SELECT 3, 70 as weight_capacity
+UNION ALL
+SELECT 4, 80 as weight_capacity
+),
+
+passengers as 
+(
+SELECT 1 AS lift, 'A' as passenger, 10 as weight
+UNION ALL
+SELECT 1 AS lift, 'B' as passenger, 30 as weight
+UNION ALL
+SELECT 1 AS lift, 'C' as passenger, 10 as weight
+UNION ALL
+SELECT 1 AS lift, 'D' as passenger, 10 as weight
+UNION ALL
+SELECT 2 AS lift, 'E' as passenger, 10 as weight
+UNION ALL
+SELECT 2 AS lift, 'F' as passenger, 20 as weight
+UNION ALL
+SELECT 2 AS lift, 'G' as passenger, 10 as weight
+UNION ALL
+SELECT 2 AS lift, 'H' as passenger, 20 as weight
+),
+
+SOLUTION:
+passengers_per_lift as 
+(
+Select 
+l.lift as lift_id,
+p.passenger as passenger_name,
+p.weight,
+sum(p.weight) over(partition by l.lift order by p.passenger, p.weight asc) as runn_weight,
+l.weight_capacity
+from lift l left join passengers p on l.lift=p.lift
+)
+
+Select lift_id,STRING_AGG(passenger_name,'|') as passenger_name
+from passengers_per_lift where runn_weight<=weight_capacity
+group by lift_id
+
+
+
